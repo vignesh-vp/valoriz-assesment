@@ -28,7 +28,7 @@ jobs:
 
       - name: Build and Push Frontend Image
         run: |
-          docker build -t vgnsh/menu-frontend:latest ./menu-frontend  # Building the Docker image
+          docker build -f Dockerfile.frontend -t vgnsh/menu-frontend:latest .
           docker push vgnsh/menu-frontend:latest  # Pushing the image to Docker Hub
 
       - name: Set up K3s CLI
