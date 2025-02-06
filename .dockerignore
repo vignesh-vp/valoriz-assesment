@@ -1,0 +1,15 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+
+# Node artifacts
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+
