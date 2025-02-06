@@ -28,7 +28,7 @@ jobs:
 
       - name: Build and Push Backend Image
         run: |
-          docker build -t vgnsh/django-backend:latest ./menu
+          docker build -f Dockerfile.backend -t vgnsh/django-backend:latest .
           docker push vgnsh/django-backend:latest
 
       - name: Set up K3s CLI
