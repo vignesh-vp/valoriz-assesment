@@ -5,7 +5,7 @@ on:
     branches:
       - master  # Trigger workflow on push to master branch
     paths:
-      - "menu-frontend/**"  # Only trigger on changes inside the 'menu-frontend' directory
+      - ".github/**"  # Only trigger on changes inside the 'menu-frontend' directory
   pull_request:
     branches:
       - master  # Trigger on pull requests targeting master
