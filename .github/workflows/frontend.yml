@@ -33,10 +33,13 @@ jobs:
 
       - name: Set up K3s CLI
         run: |
-          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig  # Decode Kubeconfig and save
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig  # Save the Kubeconfig content directly
           export KUBECONFIG=kubeconfig  # Set KUBECONFIG for kubectl
+
+      - name: Verify Kubernetes Connection
+        run: |
+          kubectl get nodes  # Ensure kubectl can access the cluster
 
       - name: Deploy Frontend to K3s
         run: |
           kubectl rollout restart deployment menu-frontend -n default  # Restart the deployment in K3s
-
