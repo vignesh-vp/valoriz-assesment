@@ -1,5 +1,5 @@
 # Build an API with Django and Nextjs
-
+##########
 This is a simple example of how to build an API with Django, React, and Docker. You can find the
 article concerning this code here on my [blog](https://koladev.xyz/posts/django-nextjs-crud/).
 
