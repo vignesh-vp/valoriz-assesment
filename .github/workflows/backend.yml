@@ -40,3 +40,6 @@ jobs:
         run: |
           kubectl rollout restart deployment django-backend -n default
 
+
+
+
