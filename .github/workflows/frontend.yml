@@ -3,14 +3,14 @@ name: Next.js Frontend CI/CD
 on:
   push:
     branches:
-      - master
+      - master  # Trigger workflow on push to master branch
     paths:
-      - "menu-frontend/**"
+      - "menu-frontend/**"  # Only trigger on changes inside the 'menu-frontend' directory
   pull_request:
     branches:
-      - master
+      - master  # Trigger on pull requests targeting master
     paths:
-      - "menu-frontend/**"
+      - "menu-frontend/**"  # Only trigger for changes inside the 'menu-frontend' directory
 
 jobs:
   build-and-deploy:
@@ -28,15 +28,15 @@ jobs:
 
       - name: Build and Push Frontend Image
         run: |
-          docker build -t vgnsh/menu-frontend:latest ./menu-frontend
-          docker push vgnsh/menu-frontend:latest
+          docker build -t vgnsh/menu-frontend:latest ./menu-frontend  # Building the Docker image
+          docker push vgnsh/menu-frontend:latest  # Pushing the image to Docker Hub
 
       - name: Set up K3s CLI
         run: |
-          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
-          export KUBECONFIG=kubeconfig
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig  # Decode Kubeconfig and save
+          export KUBECONFIG=kubeconfig  # Set KUBECONFIG for kubectl
 
       - name: Deploy Frontend to K3s
         run: |
-          kubectl rollout restart deployment menu-frontend -n default
+          kubectl rollout restart deployment menu-frontend -n default  # Restart the deployment in K3s
 
