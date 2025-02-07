@@ -10,9 +10,13 @@ spec:
   containers:
     - name: kaniko
       image: gcr.io/kaniko-project/executor:latest
-      command: ["/busybox/sh", "-c"]
+      command:
+        - "/kaniko/executor"
       args:
-        - "/kaniko/executor --dockerfile=/workspace/menu/Dockerfile.backend --context=/workspace/menu --destination=vgnsh/django-backend:latest --cache=true"
+        - "--dockerfile=/workspace/Dockerfile.backend"
+        - "--context=/workspace/menu"
+        - "--destination=vgnsh/django-backend:latest"
+        - "--cache=true"
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
