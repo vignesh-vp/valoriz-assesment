@@ -1,58 +1,38 @@
 pipeline {
     agent {
-        kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  name: kaniko
-spec:
-  containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:latest
-      command:
-        - "/kaniko/executor"
-      args:
-        - "--dockerfile=/workspace/Dockerfile.backend"
-        - "--context=/workspace/menu"
-        - "--destination=vgnsh/django-backend:latest"
-        - "--cache=true"
-      volumeMounts:
-        - name: kaniko-secret
-          mountPath: /kaniko/.docker
-  volumes:
-    - name: kaniko-secret
-      secret:
-        secretName: regcred
-"""
+        node {
+            label 'docker'  // Ensure Jenkins runs on a node with Docker installed
         }
     }
     environment {
-        IMAGE_NAME = 'vgnsh/django-backend'
-        IMAGE_TAG = 'latest'
+        DOCKER_IMAGE = "vgnsh/django-backend:latest"
+        DOCKER_USER = "vgnsh"
+        DOCKER_PASS = "Vignesh@5547"
     }
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 git 'https://github.com/vignesh-vp/valoriz-assesment.git'
             }
         }
-        stage('Build and Push Docker Image with Kaniko') {
+        stage('Build Docker Image') {
             steps {
-                container('kaniko') {
-                    sh '''
-                    /kaniko/executor \
-                      --dockerfile=/workspace/Dockerfile.backend \
-                      --context=/workspace/menu \
-                      --destination=$IMAGE_NAME:$IMAGE_TAG \
-                      --cache=true
-                    '''
-                }
+                sh 'docker build -t $DOCKER_IMAGE -f Dockerfile.backend .'  // Use -f to specify the Dockerfile
+            }
+        }
+        stage('Login to Docker Hub') {
+            steps {
+                sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+            }
+        }
+        stage('Push Image') {
+            steps {
+                sh 'docker push $DOCKER_IMAGE'
             }
         }
         stage('Deploy to K3s') {
             steps {
-                sh 'kubectl apply -f k8s/django-backend-deployment.yaml'
+                sh 'kubectl rollout restart deployment django-backend -n default'
             }
         }
     }
