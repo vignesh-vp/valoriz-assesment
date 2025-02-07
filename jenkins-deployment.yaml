@@ -16,28 +16,36 @@ spec:
         app: jenkins
     spec:
       serviceAccountName: jenkins  # Assign RBAC permissions
+      securityContext:
+        fsGroup: 972  # Ensure Jenkins has file system permissions
       containers:
         - name: jenkins
           image: jenkins/jenkins:lts
+          securityContext:
+            runAsUser: 0  # Run as root
+            privileged: true  # Allow Docker access
+          env:
+            - name: DOCKER_GROUP_ID
+              value: "972"  # Use the correct group ID from your system
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              apt-get update && apt-get install -y docker.io
+              groupadd -g 972 docker
+              usermod -aG docker jenkins
+              exec /usr/local/bin/jenkins.sh
           ports:
             - containerPort: 8080
           volumeMounts:
             - name: jenkins-home
               mountPath: /var/jenkins_home
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
       volumes:
         - name: jenkins-home
           persistentVolumeClaim:
             claimName: jenkins-pvc  # Use PVC for Jenkins home storage
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: jenkins-pvc
-  namespace: jenkins
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock  # Mount Docker socket
 

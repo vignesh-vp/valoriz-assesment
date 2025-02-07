@@ -23,18 +23,5 @@ spec:
             - name: ALLOWED_HOSTS
               value: "*"
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-service
-spec:
-  selector:
-    app: django-backend
-  ports:
-    - protocol: TCP
-      port: 8000
-      targetPort: 8000
-      nodePort: 32200  # Assigning NodePort manually
-  type: NodePort  # Changing from ClusterIP to NodePort
 
 
