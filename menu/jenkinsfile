@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        node {
-            label 'docker'  // Ensure Jenkins runs on a node with Docker installed
-        }
-    }
+    agent any
     environment {
         DOCKER_IMAGE = "vgnsh/django-backend:latest"
         DOCKER_USER = "vgnsh"
