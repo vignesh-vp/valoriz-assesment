@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    environment {
+        IMAGE_NAME = 'vgnsh/menu-frontend'
+        IMAGE_TAG = 'latest'
+    }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/vignesh-vp/valoriz-assesment.git'
+            }
+        }
+        stage('Install Dependencies & Run Tests') {
+            steps {
+                sh '''
+                cd menu-frontend
+                npm install
+                npm run test
+                '''
+            }
+        }
+        stage('Build and Push Docker Image with Kaniko') {
+            steps {
+                sh '''
+                /kaniko/executor \
+                  --context=/workspace/menu-frontend \
+                  --dockerfile=/workspace/Dockerfile.frontend \
+                  --destination=$IMAGE_NAME:$IMAGE_TAG \
+                  --cache=true
+                '''
+            }
+        }
+        stage('Deploy Frontend to K3s') {
+            steps {
+                sh 'kubectl apply -f /workspace/k8s/nextjs-frontend-deployment.yaml'
+            }
+        }
+    }
+}
+
