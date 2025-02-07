@@ -11,6 +11,21 @@ pipeline {
                 git 'https://github.com/vignesh-vp/valoriz-assesment.git'
             }
         }
+      stage('Install Docker') {
+            steps {
+                script {
+                    sh '''
+                    if ! command -v docker &> /dev/null; then
+                        echo "Installing Docker..."
+                        apt-get update
+                        apt-get install -y docker.io
+                    else
+                        echo "Docker is already installed."
+                    fi
+                    '''
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE -f Dockerfile.backend .'  // Use -f to specify the Dockerfile
