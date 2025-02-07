@@ -10,13 +10,9 @@ spec:
   containers:
     - name: kaniko
       image: gcr.io/kaniko-project/executor:latest
-      command:
-        - "/kaniko/executor"
+      command: ["/busybox/sh", "-c"]
       args:
-        - "--dockerfile=/workspace/Dockerfile.backend"
-        - "--context=/workspace/menu"
-        - "--destination=vgnsh/django-backend:latest"
-        - "--cache=true"
+        - "/kaniko/executor --dockerfile=/workspace/menu/Dockerfile.backend --context=/workspace/menu --destination=vgnsh/django-backend:latest --cache=true"
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
@@ -40,7 +36,13 @@ spec:
         stage('Build and Push Docker Image with Kaniko') {
             steps {
                 container('kaniko') {
-                    sh '/kaniko/executor'
+                    sh '''
+                    /kaniko/executor \
+                      --dockerfile=/workspace/Dockerfile.backend \
+                      --context=/workspace/menu \
+                      --destination=$IMAGE_NAME:$IMAGE_TAG \
+                      --cache=true
+                    '''
                 }
             }
         }
@@ -51,4 +53,3 @@ spec:
         }
     }
 }
-
