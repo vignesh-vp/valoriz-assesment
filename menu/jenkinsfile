@@ -10,15 +10,13 @@ pipeline {
                 git 'https://github.com/vignesh-vp/valoriz-assesment.git'
             }
         }
-        stage('Run Tests') {
+        stage('Run Tests in Docker') {
             steps {
                 sh '''
-                python3 -m venv venv
-                . venv/bin/activate
-                pip install --upgrade pip
-                pip install -r requirements.txt
+                docker run --rm -v $(pwd)/menu:/app -w /app python:3.9 bash -c "
+                pip install -r requirements.txt &&
                 pytest
-                deactivate
+                "
                 '''
             }
         }
@@ -26,16 +24,16 @@ pipeline {
             steps {
                 sh '''
                 /kaniko/executor \
-                  --context=/workspace \
+                  --context `pwd`/menu \
                   --dockerfile=/workspace/Dockerfile.backend \
-                  --destination=$IMAGE_NAME:$IMAGE_TAG \
+                  --destination $IMAGE_NAME:$IMAGE_TAG \
                   --cache=true
                 '''
             }
         }
         stage('Deploy to K3s') {
             steps {
-                sh 'kubectl apply -f /workspace/k8s/django-backend-deployment.yaml'
+                sh 'kubectl apply -f k8s/django-backend-deployment.yaml'
             }
         }
     }
