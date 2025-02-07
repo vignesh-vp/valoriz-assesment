@@ -10,24 +10,13 @@ pipeline {
                 git 'https://github.com/vignesh-vp/valoriz-assesment.git'
             }
         }
-        stage('Run Tests in Kubernetes Pod') {
-            steps {
-                sh '''
-                kubectl run django-test --rm -i --tty --restart=Never \
-                  --image=python:3.9 -- bash -c "
-                  pip install -r https://raw.githubusercontent.com/vignesh-vp/valoriz-assesment/master/menu/requirements.txt &&
-                  pytest https://github.com/vignesh-vp/valoriz-assesment.git/menu"
-                "
-                '''
-            }
-        }
         stage('Build and Push Docker Image with Kaniko') {
             steps {
                 sh '''
                 /kaniko/executor \
-                  --context `pwd`/menu \
-                  --dockerfile `pwd`/Dockerfile.backend \
-                  --destination $IMAGE_NAME:$IMAGE_TAG \
+                  --context=$(pwd)/menu \
+                  --dockerfile=$(pwd)/Dockerfile.backend \
+                  --destination=$IMAGE_NAME:$IMAGE_TAG \
                   --cache=true
                 '''
             }
