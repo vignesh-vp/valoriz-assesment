@@ -1,38 +1,72 @@
 pipeline {
     agent any
-    environment {
-        IMAGE_NAME = 'vgnsh/menu-frontend'
-        IMAGE_TAG = 'latest'
-    }
+
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 git 'https://github.com/vignesh-vp/valoriz-assesment.git'
             }
         }
-        stage('Install Dependencies & Run Tests') {
+
+        stage('Install Docker') {
             steps {
-                sh '''
-                cd menu-frontend
-                npm install
-                npm run test
-                '''
+                script {
+                    sh '''
+                    if ! command -v docker &> /dev/null; then
+                        echo "Installing Docker..."
+                        apt-get update
+                        apt-get install -y docker.io
+                    else
+                        echo "Docker is already installed."
+                    fi
+                    '''
+                }
             }
         }
-        stage('Build and Push Docker Image with Kaniko') {
+
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                /kaniko/executor \
-                  --context=/workspace/menu-frontend \
-                  --dockerfile=/workspace/Dockerfile.frontend \
-                  --destination=$IMAGE_NAME:$IMAGE_TAG \
-                  --cache=true
-                '''
+                script {
+                    sh 'docker --version'
+                    sh 'docker build -t vgnsh/menu-frontend:latest -f Dockerfile.frontend .'
+                }
             }
         }
-        stage('Deploy Frontend to K3s') {
+
+        stage('Login to Docker Hub') {
             steps {
-                sh 'kubectl apply -f /workspace/k8s/nextjs-frontend-deployment.yaml'
+                script {
+                    sh 'echo "Vignesh@5547" | docker login -u vgnsh --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh 'docker push vgnsh/menu-frontend:latest'
+            }
+        }
+
+        stage('Install Kubectl') {
+            steps {
+                script {
+                    sh '''
+                    if ! command -v kubectl &> /dev/null; then
+                        echo "Installing kubectl..."
+                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                        chmod +x kubectl
+                        mv kubectl /usr/local/bin/
+                    else
+                        echo "kubectl is already installed."
+                    fi
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to K3s') {
+            steps {
+                sh 'kubectl apply -f k8s/nextjs-frontend-deployment.yaml'
             }
         }
     }
