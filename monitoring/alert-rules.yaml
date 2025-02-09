@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alert-rules
+  namespace: monitoring
+data:
+  alert-rules.yml: |
+    groups:
+      - name: InstanceDown
+        rules:
+          - alert: InstanceDown
+            expr: up == 0
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Instance {{ $labels.instance }} is down"
+
+      - name: HighCPUUsage
+        rules:
+          - alert: HighCPUUsage
+            expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage on instance {{ $labels.instance }}"
+
+      - name: HighMemoryUsage
+        rules:
+          - alert: HighMemoryUsage
+            expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100) < 20
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High Memory usage on instance {{ $labels.instance }}"
+
