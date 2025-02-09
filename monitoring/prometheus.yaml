@@ -27,14 +27,14 @@ metadata:
   name: prometheus
   namespace: monitoring
 spec:
-  type: NodePort  # Change from ClusterIP to NodePort
+  type: NodePort  
   selector:
     app: prometheus
   ports:
     - protocol: TCP
       port: 9090
       targetPort: 9090
-      nodePort: 30090  # Expose on a specific port
+      nodePort: 30090  
 
 ---
 apiVersion: apps/v1

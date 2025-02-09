@@ -9,6 +9,6 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
-      nodePort: 32006  # Assigning NodePort manually
-  type: NodePort  # Changing from ClusterIP to NodePort
+      nodePort: 32006  
+  type: NodePort  
 

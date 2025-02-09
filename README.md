@@ -73,6 +73,10 @@ This project is a full-stack application with a Django backend and a Next.js fro
 - Install `kubectl` and `helm`
 - Have access to Docker Hub
 
+### Docker Image Repository
+- Backend: [vgnsh/django-backend](https://hub.docker.com/r/vgnsh/django-backend)
+- Frontend: [vgnsh/menu-frontend](https://hub.docker.com/r/vgnsh/menu-frontend)
+
 ### Build and Push Docker Images
 ```sh
 # Backend

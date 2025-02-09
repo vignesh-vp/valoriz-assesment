@@ -9,6 +9,6 @@ spec:
     - protocol: TCP
       port: 8000
       targetPort: 8000
-      nodePort: 32200  # Assigning NodePort manually
-  type: NodePort  # Changing from ClusterIP to NodePort
+      nodePort: 32200  
+  type: NodePort  
 

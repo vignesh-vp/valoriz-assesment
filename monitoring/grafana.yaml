@@ -4,14 +4,14 @@ metadata:
   name: grafana
   namespace: monitoring
 spec:
-  type: NodePort  # Change from ClusterIP to NodePort
+  type: NodePort  
   selector:
     app: grafana
   ports:
     - protocol: TCP
       port: 3000
       targetPort: 3000
-      nodePort: 30300  # Expose on a specific port
+      nodePort: 30300  
 ---
 apiVersion: apps/v1
 kind: Deployment
