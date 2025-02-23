@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
  * @param {number} id The ID of the menu item to retrieve.
  */
 async function deleteMenu(id) {
-  const res = await fetch(`http://127.0.0.1:32200/api/menu/${id}/`, {
+  const res = await fetch(`http://127.0.0.1:32002/api/menu/${id}/`, {
     method: "DELETE",
   });
   if (!res.ok) {
@@ -21,7 +21,7 @@ async function deleteMenu(id) {
  * Fetches menu data from the server.
  */
 async function getData() {
-  const res = await fetch("http://127.0.0.1:32200/api/menu/");
+  const res = await fetch("http://127.0.0.1:32002/api/menu/");
   if (!res.ok) {
     throw new Error("Failed to fetch data");
   }

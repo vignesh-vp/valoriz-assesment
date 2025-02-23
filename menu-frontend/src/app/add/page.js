@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
  * @param {Object} data The menu item data to be sent.
  */
 async function createMenu(data) {
-  const res = await fetch("http://127.0.0.1:32200/api/menu/", {
+  const res = await fetch("http://127.0.0.1:32002/api/menu/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
