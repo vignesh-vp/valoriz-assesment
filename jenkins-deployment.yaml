@@ -36,6 +36,13 @@ spec:
               exec /usr/local/bin/jenkins.sh
           ports:
             - containerPort: 8080
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
           volumeMounts:
             - name: jenkins-home
               mountPath: /var/jenkins_home
@@ -48,4 +55,3 @@ spec:
         - name: docker-socket
           hostPath:
             path: /var/run/docker.sock  # Mount Docker socket
-

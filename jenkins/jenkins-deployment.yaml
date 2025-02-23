@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+      app.kubernetes.io/name: jenkins
+      app.kubernetes.io/instance: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+        app.kubernetes.io/name: jenkins
+        app.kubernetes.io/instance: jenkins
+    spec:
+      serviceAccountName: jenkins
+      containers:
+        - name: jenkins
+          securityContext:
+            runAsUser: 0
+          image: "jenkins/jenkins:lts-jdk17"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: agent
+              containerPort: 50000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: "/var/jenkins_home/"
+              name: jenkins-vol
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: jenkins-vol
+          persistentVolumeClaim:
+            claimName: jenkins-pvc
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app: jenkins
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 32000  # Set a custom port between 30000-32767
+      name: http
+    - port: 50000
+      protocol: TCP
+      targetPort: 50000
+      nodePort: 32001  # Optional for agent communication
+      name: agent
+  selector:
+    app: jenkins
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jenkins
+  namespace: jenkins
+  labels:
+    app: jenkins
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: jenkins.local
+      http:
+        paths:
+          - backend:
+              service:
+                name: jenkins
+                port: 
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jenkins-pv
+  namespace: jenkins
+spec:
+  storageClassName: jenkins-pv
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 20Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/jenkins-volume/
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-pvc
+  namespace: jenkins
+spec:
+  storageClassName: jenkins-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
