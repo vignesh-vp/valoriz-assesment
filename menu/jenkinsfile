@@ -83,7 +83,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    kubectl config use-context default  # Ensure using K3s context
+                    #kubectl config use-context default  # Ensure using K3s context
                     kubectl set image deployment/django-backend django-backend=${IMAGE_NAME}:${VERSION} -n default
                     kubectl rollout restart deployment/django-backend -n default
                     '''
