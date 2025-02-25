@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        VERSION = "v1.0.${BUILD_NUMBER}"  // Generates a versioned tag like v1.0.5
+        IMAGE_NAME = "vgnsh/menu-frontend"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -8,14 +13,14 @@ pipeline {
             }
         }
 
-        stage('Install Docker') {
+        stage('Check & Install Docker') {
             steps {
                 script {
                     sh '''
                     if ! command -v docker &> /dev/null; then
-                        echo "Installing Docker..."
-                        apt-get update
-                        apt-get install -y docker.io
+                        echo "Docker not found. Installing..."
+                        sudo apt-get update
+                        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io
                     else
                         echo "Docker is already installed."
                     fi
@@ -28,34 +33,44 @@ pipeline {
             steps {
                 script {
                     sh 'docker --version'
-                    sh 'docker build -t vgnsh/menu-frontend:latest -f Dockerfile.frontend .'
+                    sh '''
+                    docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
+                    docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
+                    '''
                 }
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                script {
-                    sh 'echo "Vignesh@5547" | docker login -u vgnsh --password-stdin'
+                withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_PASSWORD')]) {
+                    script {
+                        sh 'echo "$DOCKER_PASSWORD" | docker login -u vgnsh --password-stdin'
+                    }
                 }
             }
         }
 
-        stage('Push Image') {
+        stage('Push Docker Image') {
             steps {
-                sh 'docker push vgnsh/menu-frontend:latest'
+                script {
+                    sh '''
+                    docker push ${IMAGE_NAME}:${VERSION}
+                    docker push ${IMAGE_NAME}:latest
+                    '''
+                }
             }
         }
 
-        stage('Install Kubectl') {
+        stage('Check & Install Kubectl') {
             steps {
                 script {
                     sh '''
                     if ! command -v kubectl &> /dev/null; then
-                        echo "Installing kubectl..."
+                        echo "kubectl not found. Installing..."
                         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                         chmod +x kubectl
-                        mv kubectl /usr/local/bin/
+                        sudo mv kubectl /usr/local/bin/
                     else
                         echo "kubectl is already installed."
                     fi
@@ -64,11 +79,29 @@ pipeline {
             }
         }
 
-        stage('Deploy to K3s') {
+        stage('Deploy to Local K3s') {
             steps {
-                sh 'kubectl apply -f k8s/nextjs-frontend-deployment.yaml'
+                script {
+                    sh '''
+                    kubectl config use-context default  # Ensure using K3s context
+                    kubectl set image deployment/nextjs-frontend nextjs-frontend=${IMAGE_NAME}:${VERSION} -n default
+                    kubectl rollout restart deployment/nextjs-frontend -n default
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Azure AKS') {
+            steps {
+                withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
+                    script {
+                        sh '''
+                        kubectl --kubeconfig=$KUBECONFIG set image deployment/nextjs-frontend nextjs-frontend=${IMAGE_NAME}:${VERSION} -n default
+                        kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/nextjs-frontend -n default
+                        '''
+                    }
+                }
             }
         }
     }
 }
-

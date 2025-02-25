@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 /**
  * Fetches a menu item by ID.
  * @param {number} id The ID of the menu item to retrieve.
  */
 async function deleteMenu(id) {
-  const res = await fetch(`http://127.0.0.1:32002/api/menu/${id}/`, {
+  const res = await fetch(`${API_BASE_URL}/api/menu/${id}/`, {
     method: "DELETE",
   });
   if (!res.ok) {
@@ -21,7 +23,7 @@ async function deleteMenu(id) {
  * Fetches menu data from the server.
  */
 async function getData() {
-  const res = await fetch("http://127.0.0.1:32002/api/menu/");
+  const res = await fetch("${API_BASE_URL}/api/menu/");
   if (!res.ok) {
     throw new Error("Failed to fetch data");
   }

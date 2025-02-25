@@ -1,24 +1,34 @@
-# official Node.js image
-FROM node:18-alpine
+# Base image for building the app
+FROM node:18-alpine AS builder
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY menu-frontend/package*.json ./
+# Copy only package.json and package-lock.json to leverage Docker cache
+COPY package.json package-lock.json ./
+RUN npm install --frozen-lockfile
 
-# Install dependencies
-RUN npm install
+# Copy the entire project
+COPY . ./
 
-# Copy the rest of the frontend code
-COPY menu-frontend/ .
-
-# Build the Next.js application
+# Build the Next.js app
 RUN npm run build
 
-# Expose the port the Next.js app runs on
+# Production image
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy only necessary production files
+COPY --from=builder /app/.next .next
+COPY --from=builder /app/node_modules node_modules
+COPY --from=builder /app/package.json ./
+
+# Set environment variables dynamically (provided by Kubernetes)
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Expose the app port
 EXPOSE 3000
 
-# Start the Next.js application
-CMD ["npm", "start"]
-
+# Start the Next.js server
+CMD ["npm", "run", "start"]

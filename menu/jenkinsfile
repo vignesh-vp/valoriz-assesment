@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        VERSION = "v1.0.${BUILD_NUMBER}"  // Generates a versioned tag like v1.0.5
+        IMAGE_NAME = "vgnsh/django-backend"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -28,22 +33,32 @@ pipeline {
             steps {
                 script {
                     sh 'docker --version'
-                    sh 'docker build -t vgnsh/django-backend:latest -f Dockerfile.backend .'
+                    sh '''
+                    docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.backend .
+                    docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
+                    '''
                 }
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                script {
-                    sh 'echo "Vignesh@5547" | docker login -u vgnsh --password-stdin'
+                withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_PASSWORD')]) {
+                    script {
+                        sh 'echo "$DOCKER_PASSWORD" | docker login -u vgnsh --password-stdin'
+                    }
                 }
             }
         }
 
-        stage('Push Image') {
+        stage('Push Docker Image') {
             steps {
-                sh 'docker push vgnsh/django-backend:latest'
+                script {
+                    sh '''
+                    docker push ${IMAGE_NAME}:${VERSION}
+                    docker push ${IMAGE_NAME}:latest
+                    '''
+                }
             }
         }
 
@@ -64,9 +79,29 @@ pipeline {
             }
         }
 
-        stage('Deploy to K3s') {
+        stage('Deploy to Local K3s') {
             steps {
-                sh 'kubectl apply -f k8s/django-backend-deployment.yaml'
+                script {
+                    sh '''
+                    kubectl config use-context default  # Ensure using K3s context
+                    kubectl set image deployment/django-backend django-backend=${IMAGE_NAME}:${VERSION} -n default
+                    kubectl rollout restart deployment/django-backend -n default
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Azure AKS') {
+            steps {
+                withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
+                    script {
+                        sh '''
+                        kubectl --kubeconfig=$KUBECONFIG config use-context app-prod
+                        kubectl --kubeconfig=$KUBECONFIG set image deployment/django-backend django-backend=${IMAGE_NAME}:${VERSION} -n default
+                        kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/django-backend -n default
+                        '''
+                    }
+                }
             }
         }
     }
