@@ -56,7 +56,7 @@ pipeline {
                 script {
                     sh '''
                     docker push ${IMAGE_NAME}:${VERSION}
-                    docker push ${IMAGE_NAME}:latest
+                    # docker push ${IMAGE_NAME}:latest
                     '''
                 }
             }
@@ -83,7 +83,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    #kubectl config use-context default  # Ensure using K3s context
+                    kubectl config use-context default  # Ensure using K3s context
                     kubectl set image deployment/django-backend django-backend=${IMAGE_NAME}:${VERSION} -n default
                     kubectl rollout restart deployment/django-backend -n default
                     '''
