@@ -4,7 +4,7 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy only package.json and package-lock.json to leverage Docker cache
-COPY package.json package-lock.json ./
+COPY menu-frontend/package*.json ./
 RUN npm install --frozen-lockfile
 
 # Copy the entire project
