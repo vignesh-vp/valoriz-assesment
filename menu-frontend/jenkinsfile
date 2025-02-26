@@ -18,9 +18,9 @@ pipeline {
                 script {
                     sh '''
                     if ! command -v docker &> /dev/null; then
-                        echo "Docker not found. Installing..."
-                        sudo apt-get update
-                        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io
+                        echo "Installing Docker..."
+                        apt-get update
+                        apt-get install -y docker.io
                     else
                         echo "Docker is already installed."
                     fi
@@ -85,7 +85,7 @@ pipeline {
                     sh '''
                     # kubectl config use-context default  
                     kubectl set image deployment/nextjs-frontend nextjs-frontend=${IMAGE_NAME}:${VERSION} -n default
-                    kubectl rollout restart deployment/nextjs-frontend -n default
+                    # kubectl rollout restart deployment/nextjs-frontend -n default
                     '''
                 }
             }
