@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        VERSION = "v1.0.${BUILD_NUMBER}"  // Generates a versioned tag like v1.0.5
+        VERSION = "v1.0.${BUILD_NUMBER}"  
         IMAGE_NAME = "vgnsh/django-backend"
     }
 
@@ -83,9 +83,9 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    #kubectl config use-context default  # Ensure using K3s context
+                    # kubectl config use-context default  # Ensure using K3s context
                     kubectl set image deployment/django-backend django-backend=${IMAGE_NAME}:${VERSION} -n jenkins
-                    kubectl rollout restart deployment/django-backend -n jenkins
+                    # kubectl rollout restart deployment/django-backend -n jenkins
                     '''
                 }
             }
@@ -98,7 +98,7 @@ pipeline {
                         sh '''
                         kubectl --kubeconfig=$KUBECONFIG config use-context app-prod
                         kubectl --kubeconfig=$KUBECONFIG set image deployment/django-backend django-backend=${IMAGE_NAME}:${VERSION} -n jenkins
-                        kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/django-backend -n jenkins
+                        # kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/django-backend -n jenkins
                         '''
                     }
                 }

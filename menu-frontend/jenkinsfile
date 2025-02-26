@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        VERSION = "v1.0.${BUILD_NUMBER}"  // Generates a versioned tag like v1.0.5
+        VERSION = "v1.0.${BUILD_NUMBER}"  
         IMAGE_NAME = "vgnsh/menu-frontend"
     }
 
@@ -83,7 +83,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    kubectl config use-context default  # Ensure using K3s context
+                    # kubectl config use-context default  
                     kubectl set image deployment/nextjs-frontend nextjs-frontend=${IMAGE_NAME}:${VERSION} -n default
                     kubectl rollout restart deployment/nextjs-frontend -n default
                     '''
@@ -97,7 +97,7 @@ pipeline {
                     script {
                         sh '''
                         kubectl --kubeconfig=$KUBECONFIG set image deployment/nextjs-frontend nextjs-frontend=${IMAGE_NAME}:${VERSION} -n default
-                        kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/nextjs-frontend -n default
+                        # kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/nextjs-frontend -n default
                         '''
                     }
                 }
