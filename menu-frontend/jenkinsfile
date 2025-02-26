@@ -84,8 +84,8 @@ pipeline {
                 script {
                     sh '''
                     # kubectl config use-context default  
-                    kubectl set image deployment/nextjs-frontend nextjs-frontend=${IMAGE_NAME}:${VERSION} -n jenkins
-                    # kubectl rollout restart deployment/nextjs-frontend -n jenkins
+                    kubectl set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n jenkins
+                    # kubectl rollout restart deployment/menu-frontend -n jenkins
                     '''
                 }
             }
@@ -96,8 +96,8 @@ pipeline {
                 withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
                     script {
                         sh '''
-                        kubectl --kubeconfig=$KUBECONFIG set image deployment/nextjs-frontend nextjs-frontend=${IMAGE_NAME}:${VERSION} -n jenkins
-                        # kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/nextjs-frontend -n jenkins
+                        kubectl --kubeconfig=$KUBECONFIG set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n jenkins
+                        # kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/menu-frontend -n jenkins
                         '''
                     }
                 }
