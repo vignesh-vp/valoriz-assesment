@@ -18,9 +18,6 @@ spec:
           image: vgnsh/menu-frontend:latest
           ports:
             - containerPort: 3000
-          env:
-            - name: NEXT_PUBLIC_API_BASE_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: nextjs-config
-                  key: NEXT_PUBLIC_API_BASE_URL
+          envFrom:
+            - configMapRef:
+                name: nextjs-config  # ✅ Inject API URL from ConfigMap
