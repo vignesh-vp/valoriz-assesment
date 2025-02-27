@@ -3,14 +3,14 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package.json and install dependencies
+# Install dependencies
 COPY menu-frontend/package*.json ./
 RUN npm ci --frozen-lockfile
 
-# Copy the entire frontend project
+# Copy project files
 COPY menu-frontend/ ./
 
-# ✅ Build Next.js app (without hardcoding API URL)
+# Build Next.js app (without API URL hardcoded)
 RUN npm run build
 
 # Production image
@@ -22,8 +22,12 @@ WORKDIR /app
 COPY --from=builder /app/.next .next
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
-# COPY --from=builder /app/public public
+COPY --from=builder /app/public public
 COPY --from=builder /app/next.config.js ./
+
+# ✅ Create a startup script
+RUN echo 'envsubst < /app/public/env.template.js > /app/public/env.js && exec node server.js' > /app/start.sh
+RUN chmod +x /app/start.sh
 
 # ✅ Set environment variables
 ENV NODE_ENV=production
@@ -32,5 +36,5 @@ ENV PORT=3000
 # Expose the app port
 EXPOSE 3000
 
-# ✅ Inject API URL dynamically at runtime
-CMD ["sh", "-c", "NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL npm start"]
+# ✅ Start script to inject env variables before starting Next.js
+CMD ["/bin/sh", "-c", "/app/start.sh"]
