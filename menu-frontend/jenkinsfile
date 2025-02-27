@@ -5,13 +5,25 @@ pipeline {
         VERSION = "v1.0.${BUILD_NUMBER}"  
         IMAGE_NAME = "vgnsh/menu-frontend"
         K8S_NAMESPACE = "jenkins"
-        ENV_FILE = params.DEPLOY_ENV == 'cloud' ? ".env.production" : ".env.local"
+    }
+
+    parameters {
+        choice(name: 'DEPLOY_ENV', choices: ['local', 'cloud'], description: 'Choose deployment environment: local (K3s) or cloud (AKS)')
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git 'https://github.com/vignesh-vp/valoriz-assesment.git'
+            }
+        }
+
+        stage('Set Environment File') {
+            steps {
+                script {
+                    env.ENV_FILE = (params.DEPLOY_ENV == 'cloud') ? ".env.production" : ".env.local"
+                    echo "Using environment file: ${env.ENV_FILE}"
+                }
             }
         }
 
@@ -35,8 +47,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    echo "Using environment file: $ENV_FILE"
-                    cp $ENV_FILE .env  # Ensure the correct .env file is used
+                    cp ${ENV_FILE} .env  # Ensure the correct .env file is used
                     docker --version
                     docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
                     docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
@@ -124,9 +135,5 @@ pipeline {
                 }
             }
         }
-    }
-
-    parameters {
-        choice(name: 'DEPLOY_ENV', choices: ['local', 'cloud'], description: 'Choose deployment environment: local (K3s) or cloud (AKS)')
     }
 }
