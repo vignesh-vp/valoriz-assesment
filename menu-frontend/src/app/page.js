@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import getConfig from "next/config";
-const { publicRuntimeConfig } = getConfig();
-const API_BASE_URL = publicRuntimeConfig?.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"; // 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 /**
  * Fetches a menu item by ID.
