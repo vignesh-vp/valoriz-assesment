@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+console.log("API_BASE_URL:", API_BASE_URL);
 
 /**
  * Sends a POST request to create a new menu item.

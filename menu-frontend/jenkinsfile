@@ -89,8 +89,10 @@ pipeline {
                             echo "Applying ConfigMap for Local K3s..."
                             kubectl apply -f k8s/nextjs-configmap-local.yaml -n ${K8S_NAMESPACE}
 
+                            kubectl set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
+
                             echo "Applying deployment..."
-                            kubectl apply -f k8s/nextjs-frontend-deployment.yaml -n ${K8S_NAMESPACE}
+                            kubectl rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
                             '''
                         }
                     }
@@ -104,8 +106,10 @@ pipeline {
                                 echo "Applying ConfigMap for AKS..."
                                 kubectl --kubeconfig=$KUBECONFIG apply -f k8s/nextjs-configmap-aks.yaml -n ${K8S_NAMESPACE}
 
+                                kubectl --kubeconfig=$KUBECONFIG set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
+
                                 echo "Applying deployment..."
-                                kubectl --kubeconfig=$KUBECONFIG apply -f k8s/nextjs-frontend-deployment.yaml -n ${K8S_NAMESPACE}
+                                kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
                                 '''
                             }
                         }
