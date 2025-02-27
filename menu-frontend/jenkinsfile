@@ -4,6 +4,7 @@ pipeline {
     environment {
         VERSION = "v1.0.${BUILD_NUMBER}"  
         IMAGE_NAME = "vgnsh/menu-frontend"
+        K8S_NAMESPACE = "jenkins"
     }
 
     stages {
@@ -34,8 +35,7 @@ pipeline {
                 script {
                     sh 'docker --version'
                     sh '''
-                    docker build --build-arg NEXT_PUBLIC_API_URL="http://django-backend:8000" \
-                        -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
+                    docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
                     docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
                     '''
                 }
@@ -81,28 +81,49 @@ pipeline {
         }
 
         stage('Deploy to Local K3s') {
+            when {
+                expression { return params.DEPLOY_ENV == 'local' }
+            }
             steps {
                 script {
                     sh '''
-                    # kubectl config use-context default  
-                    kubectl set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n jenkins
-                    # kubectl rollout restart deployment/menu-frontend -n jenkins
+                    echo "Applying ConfigMap for Local K3s..."
+                    kubectl apply -f k8s/frontend-configmap-local.yaml -n ${K8S_NAMESPACE}
+
+                    echo "Updating deployment..."
+                    kubectl set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
+
+                    echo "Restarting deployment..."
+                    kubectl rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
                     '''
                 }
             }
         }
 
         stage('Deploy to Azure AKS') {
+            when {
+                expression { return params.DEPLOY_ENV == 'cloud' }
+            }
             steps {
                 withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
                     script {
                         sh '''
-                        kubectl --kubeconfig=$KUBECONFIG set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n jenkins
-                        # kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/menu-frontend -n jenkins
+                        echo "Applying ConfigMap for AKS..."
+                        kubectl --kubeconfig=$KUBECONFIG apply -f k8s/frontend-configmap-aks.yaml -n ${K8S_NAMESPACE}
+
+                        echo "Updating deployment..."
+                        kubectl --kubeconfig=$KUBECONFIG set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
+
+                        echo "Restarting deployment..."
+                        kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
                         '''
                     }
                 }
             }
         }
+    }
+
+    parameters {
+        choice(name: 'DEPLOY_ENV', choices: ['local', 'cloud'], description: 'Choose deployment environment: local (K3s) or cloud (AKS)')
     }
 }

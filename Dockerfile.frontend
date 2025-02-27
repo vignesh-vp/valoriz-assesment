@@ -1,40 +1,45 @@
-# Base image for building the app
+# Stage 1: Build the Next.js application
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY menu-frontend/package*.json ./
+
+# Install dependencies
 RUN npm install --frozen-lockfile
 
-# Copy the entire frontend project explicitly
+# Copy the entire frontend project
 COPY menu-frontend/ ./
 
-# ✅ Copy environment variables before build (Important for NEXT_PUBLIC_API_URL)
+# ✅ Environment variables for Next.js during build
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# ✅ Show env variables for debugging
+# ✅ Show environment variable for debugging
 RUN echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
 
 # Build the Next.js app
 RUN npm run build
 
-# Production image
+# 🚀 Stage 2: Production-ready lightweight image
 FROM node:18-alpine
 
 WORKDIR /app
 
 # Copy only necessary production files
 COPY --from=builder /app/.next .next
+COPY --from=builder /app/public public
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
 
-# ✅ Ensure env variable is available at runtime
+# Set runtime environment variable (important for dynamic API URL)
 ENV NODE_ENV=production
 ENV PORT=3000
+
+# Runtime environment variables will be injected at deployment time
 ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Expose the app port
 EXPOSE 3000
