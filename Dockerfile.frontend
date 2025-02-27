@@ -3,14 +3,17 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install gettext for envsubst
+RUN apk add --no-cache gettext
+
+# Copy package.json and install dependencies
 COPY menu-frontend/package*.json ./
 RUN npm ci --frozen-lockfile
 
-# Copy project files
+# Copy the entire frontend project
 COPY menu-frontend/ ./
 
-# Build Next.js app (without API URL hardcoded)
+# ✅ Build Next.js app (API URL will be set dynamically at runtime)
 RUN npm run build
 
 # Production image
@@ -18,16 +21,15 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy necessary production files
+# Install gettext for envsubst in the final image as well
+RUN apk add --no-cache gettext
+
+# Copy only necessary production files
 COPY --from=builder /app/.next .next
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/public public
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
-
-# ✅ Create a startup script
-RUN echo 'envsubst < /app/public/env.template.js > /app/public/env.js && exec node server.js' > /app/start.sh
-RUN chmod +x /app/start.sh
 
 # ✅ Set environment variables
 ENV NODE_ENV=production
@@ -36,5 +38,9 @@ ENV PORT=3000
 # Expose the app port
 EXPOSE 3000
 
-# ✅ Start script to inject env variables before starting Next.js
-CMD ["/bin/sh", "-c", "/app/start.sh"]
+# ✅ Ensure start.sh is executable
+COPY menu-frontend/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Start the app using the startup script
+CMD ["/app/start.sh"]
