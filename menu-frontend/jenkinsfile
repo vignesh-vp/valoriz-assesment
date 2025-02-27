@@ -5,6 +5,7 @@ pipeline {
         VERSION = "v1.0.${BUILD_NUMBER}"  
         IMAGE_NAME = "vgnsh/menu-frontend"
         K8S_NAMESPACE = "jenkins"
+        ENV_FILE = params.DEPLOY_ENV == 'cloud' ? ".env.production" : ".env.local"
     }
 
     stages {
@@ -33,8 +34,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker --version'
                     sh '''
+                    echo "Using environment file: $ENV_FILE"
+                    cp $ENV_FILE .env  # Ensure the correct .env file is used
+                    docker --version
                     docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
                     docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
                     '''
