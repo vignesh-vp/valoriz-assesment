@@ -1,4 +1,4 @@
-# Base image
+# Base image for building the app
 FROM node:18-alpine AS builder
 WORKDIR /app
 
@@ -9,17 +9,17 @@ RUN npm ci --frozen-lockfile
 # Copy frontend source
 COPY menu-frontend/ ./
 
-# ✅ Build Next.js app
+# ✅ Build Next.js app in standalone mode
 RUN npm run build
 
 # Production image
 FROM node:18-alpine
 WORKDIR /app
 
-# Install runtime dependencies
+# Install runtime dependencies (gettext for envsubst)
 RUN apk add --no-cache gettext
 
-# Copy built app
+# Copy the build output from the builder image
 COPY --from=builder /app/.next .next
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
@@ -29,8 +29,12 @@ COPY --from=builder /app/public ./public
 COPY menu-frontend/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-# ✅ Expose port
+# ✅ Expose port for Next.js
 EXPOSE 3000
 
-# ✅ Start script runs Next.js
+# ✅ Set the environment variable for the API URL if it's not done in the environment (Kubernetes ConfigMap)
+# You can comment this out if you're setting it via ConfigMap in Kubernetes
+#ENV NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:32002/api/menu"
+
+# ✅ Start script that runs Next.js in standalone mode
 CMD ["/app/start.sh"]
