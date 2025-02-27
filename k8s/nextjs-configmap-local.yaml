@@ -4,4 +4,4 @@ metadata:
   name: nextjs-config
   namespace: jenkins
 data:
-  NEXT_PUBLIC_API_BASE_URL: "http://django-backend:8000/api/menu"
+  NEXT_PUBLIC_API_BASE_URL: "http://localhost:32002/api/menu/"
