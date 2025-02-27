@@ -1,16 +1,12 @@
-# Base image for building the app
+# Base image
 FROM node:18-alpine AS builder
-
 WORKDIR /app
 
-# Install gettext for envsubst
-RUN apk add --no-cache gettext
-
-# Copy package.json and install dependencies
+# Install dependencies
 COPY menu-frontend/package*.json ./
 RUN npm ci --frozen-lockfile
 
-# Copy the entire frontend project
+# Copy frontend source
 COPY menu-frontend/ ./
 
 # ✅ Build Next.js app
@@ -18,29 +14,23 @@ RUN npm run build
 
 # Production image
 FROM node:18-alpine
-
 WORKDIR /app
 
-# Install gettext for envsubst in the final image as well
+# Install runtime dependencies
 RUN apk add --no-cache gettext
 
-# Copy only necessary production files
+# Copy built app
 COPY --from=builder /app/.next .next
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.js ./
 
-# ✅ Copy and set permissions for the startup script
+# ✅ Copy start script
 COPY menu-frontend/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
-
-# Expose the app port
+# ✅ Expose port
 EXPOSE 3000
 
-# Use the start.sh script to start the app
+# ✅ Start script runs Next.js
 CMD ["/app/start.sh"]

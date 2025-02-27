@@ -1,11 +1,8 @@
 #!/bin/sh
-# Inject API URL dynamically at runtime using envsubst
-
 echo "Starting Next.js with API URL: $NEXT_PUBLIC_API_BASE_URL"
 
-envsubst '$NEXT_PUBLIC_API_BASE_URL' < /app/.next/standalone/server.js > /app/.next/standalone/server_runtime.js
+# Replace API URL in env.js dynamically
+envsubst '$NEXT_PUBLIC_API_BASE_URL' < /app/public/env.js > /app/public/env-runtime.js
 
-chmod +x /app/.next/standalone/server_runtime.js
-
-# Run Next.js
-exec node /app/.next/standalone/server_runtime.js
+# Start Next.js
+exec node server.js
