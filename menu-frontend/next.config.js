@@ -1,9 +1,17 @@
 module.exports = {
-    rewrites: async () => [
-      {
-        source: "/api/:path*",
-        destination: "/proxy/api/:path*", // ✅ Use a static route at build time
-      },
-    ],
-  };
+    rewrites: async () => {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   
+      if (!API_BASE_URL) {
+        console.error("NEXT_PUBLIC_API_BASE_URL is not set!");
+        return []; // Return an empty array to prevent rewrites if the URL is missing
+      }
+  
+      return [
+        {
+          source: "/api/:path*",
+          destination: `${API_BASE_URL}/:path*`, // Dynamic destination
+        },
+      ];
+    },
+  };
