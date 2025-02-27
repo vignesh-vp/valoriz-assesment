@@ -10,7 +10,7 @@ RUN npm ci --frozen-lockfile
 # Copy the entire frontend project
 COPY menu-frontend/ ./
 
-# ✅ Build Next.js app (API URL will be set dynamically at runtime)
+# ✅ Build Next.js app
 RUN npm run build
 
 # Production image
@@ -22,15 +22,14 @@ WORKDIR /app
 COPY --from=builder /app/.next .next
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
-#COPY --from=builder /app/public ./public # Ensure static files are included
 COPY --from=builder /app/next.config.js ./
 
-# ✅ Set environment variables
+# ✅ Ensure environment variables are loaded at runtime
 ENV NODE_ENV=production
 ENV PORT=3000
 
 # Expose the app port
 EXPOSE 3000
 
-# ✅ Inject API URL dynamically at runtime
-CMD ["sh", "-c", "NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL npm start"]
+# ✅ Inject API URL at runtime without an entrypoint
+CMD NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL npm start
