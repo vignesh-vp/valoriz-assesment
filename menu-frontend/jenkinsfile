@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        VERSION = "v1.0.${BUILD_NUMBER}"  
+        VERSION = "v1.0.${BUILD_NUMBER}"
         IMAGE_NAME = "vgnsh/menu-frontend"
         K8S_NAMESPACE = "jenkins"
+        ENV_FILE = ''  // Placeholder for environment file
     }
 
     parameters {
@@ -21,37 +22,28 @@ pipeline {
         stage('Set Environment File') {
             steps {
                 script {
-                    env.ENV_FILE = (params.DEPLOY_ENV == 'cloud') ? ".env.production" : ".env.local"
+                    env.ENV_FILE = params.DEPLOY_ENV == 'cloud' ? ".env.production" : ".env.local"
                     echo "Using environment file: ${env.ENV_FILE}"
-                }
-            }
-        }
-
-        stage('Check & Install Docker') {
-            steps {
-                script {
-                    sh '''
-                    if ! command -v docker &> /dev/null; then
-                        echo "Installing Docker..."
-                        apt-get update
-                        apt-get install -y docker.io
-                    else
-                        echo "Docker is already installed."
-                    fi
-                    '''
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh '''
-                    cp ${ENV_FILE} .env  # Ensure the correct .env file is used
-                    docker --version
-                    docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
-                    docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
-                    '''
+                dir('menu-frontend') {  // Change directory to where .env files exist
+                    script {
+                        sh '''
+                        ls -la  # Debugging step to check if .env files exist
+                        if [ ! -f ${ENV_FILE} ]; then
+                            echo "ERROR: ${ENV_FILE} does not exist!"
+                            exit 1
+                        fi
+                        cp ${ENV_FILE} .env  # Copy correct environment file
+                        docker --version
+                        docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
+                        docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
+                        '''
+                    }
                 }
             }
         }
@@ -72,23 +64,6 @@ pipeline {
                     sh '''
                     docker push ${IMAGE_NAME}:${VERSION}
                     docker push ${IMAGE_NAME}:latest
-                    '''
-                }
-            }
-        }
-
-        stage('Check & Install Kubectl') {
-            steps {
-                script {
-                    sh '''
-                    if ! command -v kubectl &> /dev/null; then
-                        echo "kubectl not found. Installing..."
-                        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-                        chmod +x kubectl
-                        mv kubectl /usr/local/bin/
-                    else
-                        echo "kubectl is already installed."
-                    fi
                     '''
                 }
             }
