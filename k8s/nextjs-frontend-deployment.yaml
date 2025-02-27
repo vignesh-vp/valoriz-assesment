@@ -4,14 +4,23 @@ metadata:
   name: menu-frontend
   namespace: jenkins
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: menu-frontend # This label must match the pod template labels
   template:
+    metadata:
+      labels:
+        app: menu-frontend # Matching label
     spec:
       containers:
-      - name: menu-frontend
-        env:
-        - name: NEXT_PUBLIC_API_BASE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: nextjs-config
-              key: NEXT_PUBLIC_API_BASE_URL
-  
+        - name: menu-frontend
+          image: vgnsh/menu-frontend:latest # Replace with your Docker image
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: nextjs-config # Make sure this matches your ConfigMap name
+                  key: NEXT_PUBLIC_API_BASE_URL
