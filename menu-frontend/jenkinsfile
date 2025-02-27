@@ -80,50 +80,44 @@ pipeline {
             }
         }
 
-        stage('Deploy to Local K3s') {
-            when {
-                expression { return params.DEPLOY_ENV == 'local' }
-            }
-            steps {
-                script {
-                    sh '''
-                    echo "Applying ConfigMap for Local K3s..."
-                    kubectl apply -f k8s/nextjs-configmap-local.yaml -n ${K8S_NAMESPACE}
+        stage('Deploy to Both K3s & AKS') {
+            parallel {
+                stage('Deploy to Local K3s') {
+                    steps {
+                        script {
+                            sh '''
+                            echo "Applying ConfigMap for Local K3s..."
+                            kubectl apply -f k8s/nextjs-configmap-local.yaml -n ${K8S_NAMESPACE}
 
-                    echo "Updating deployment..."
-                    kubectl set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
+                            echo "Updating deployment..."
+                            kubectl set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
 
-                    echo "Restarting deployment..."
-                    kubectl rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
-                    '''
+                            echo "Restarting deployment..."
+                            kubectl rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
+                            '''
+                        }
+                    }
                 }
-            }
-        }
 
-        stage('Deploy to Azure AKS') {
-            when {
-                expression { return params.DEPLOY_ENV == 'cloud' }
-            }
-            steps {
-                withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
-                    script {
-                        sh '''
-                        echo "Applying ConfigMap for AKS..."
-                        kubectl --kubeconfig=$KUBECONFIG apply -f k8s/nextjs-configmap-aks.yaml -n ${K8S_NAMESPACE}
+                stage('Deploy to Azure AKS') {
+                    steps {
+                        withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
+                            script {
+                                sh '''
+                                echo "Applying ConfigMap for AKS..."
+                                kubectl --kubeconfig=$KUBECONFIG apply -f k8s/nextjs-configmap-aks.yaml -n ${K8S_NAMESPACE}
 
-                        echo "Updating deployment..."
-                        kubectl --kubeconfig=$KUBECONFIG set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
+                                echo "Updating deployment..."
+                                kubectl --kubeconfig=$KUBECONFIG set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
 
-                        echo "Restarting deployment..."
-                        kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
-                        '''
+                                echo "Restarting deployment..."
+                                kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
+                                '''
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-
-    parameters {
-        choice(name: 'DEPLOY_ENV', choices: ['local', 'cloud'], description: 'Choose deployment environment: local (K3s) or cloud (AKS)')
     }
 }
