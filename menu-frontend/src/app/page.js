@@ -23,7 +23,7 @@ async function deleteMenu(id) {
  * Fetches menu data from the server.
  */
 async function getData() {
-  const res = await fetch("${API_BASE_URL}/api/menu/");
+  const res = await fetch(`${API_BASE_URL}/api/menu/`);
   if (!res.ok) {
     throw new Error("Failed to fetch data");
   }

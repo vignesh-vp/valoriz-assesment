@@ -10,13 +10,6 @@ RUN npm install --frozen-lockfile
 # Copy the entire frontend project explicitly
 COPY menu-frontend/ ./
 
-# ✅ Copy environment variables before build (Important for NEXT_PUBLIC_API_URL)
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-
-# ✅ Show env variables for debugging
-RUN echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
-
 # Build the Next.js app
 RUN npm run build
 
@@ -30,11 +23,9 @@ COPY --from=builder /app/.next .next
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
 
-# ✅ Ensure env variable is available at runtime
+# Set environment variables dynamically (provided by Kubernetes)
 ENV NODE_ENV=production
 ENV PORT=3000
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Expose the app port
 EXPOSE 3000

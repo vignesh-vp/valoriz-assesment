@@ -5,7 +5,7 @@ metadata:
   namespace: jenkins
 spec:
   selector:
-    app: nextjs-frontend
+    app: menu-frontend
   ports:
     - protocol: TCP
       port: 80    # Publicly exposed port

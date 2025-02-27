@@ -34,8 +34,7 @@ pipeline {
                 script {
                     sh 'docker --version'
                     sh '''
-                    docker build --build-arg NEXT_PUBLIC_API_URL="http://django-backend:8000" \
-                        -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
+                    docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.frontend .
                     docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
                     '''
                 }

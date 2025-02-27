@@ -10,7 +10,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
  * @param {Object} data The menu item data to be sent.
  */
 async function createMenu(data) {
-  const res = await fetch("${API_BASE_URL}/api/menu/", {
+  const res = await fetch(`${API_BASE_URL}/api/menu/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
