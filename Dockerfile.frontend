@@ -10,7 +10,7 @@ RUN npm ci --frozen-lockfile
 # Copy the entire frontend project
 COPY menu-frontend/ ./
 
-# ✅ Build Next.js app (API URL will be set from ConfigMap in Kubernetes)
+# ✅ Build Next.js app (without hardcoding API URL)
 RUN npm run build
 
 # Production image
@@ -23,12 +23,12 @@ COPY --from=builder /app/.next .next
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
 
-# ✅ Set environment variables
+# ✅ Set environment variables (injected dynamically from Kubernetes)
 ENV NODE_ENV=production
 ENV PORT=3000
 
 # Expose the app port
 EXPOSE 3000
 
-# ✅ Start the app (API URL will come from ConfigMap at runtime)
-CMD ["npm", "run", "start"]
+# ✅ Inject API URL from ConfigMap dynamically at runtime
+CMD NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL npm run start
