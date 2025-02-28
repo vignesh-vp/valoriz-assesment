@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = typeof window !== "undefined" ? window.__ENV__.NEXT_PUBLIC_API_BASE_URL : "";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 console.log("API_BASE_URL:", API_BASE_URL);
 
 /**
@@ -11,7 +11,7 @@ console.log("API_BASE_URL:", API_BASE_URL);
  * @param {Object} data The menu item data to be sent.
  */
 async function createMenu(data) {
-  const res = await fetch(`${window.__ENV__.NEXT_PUBLIC_API_BASE_URL}/api/menu/`, {
+  const res = await fetch(`${API_BASE_URL}/api/menu/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = typeof window !== "undefined" ? window.__ENV__.NEXT_PUBLIC_API_BASE_URL : "";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 console.log("API_BASE_URL:", API_BASE_URL);
 
 /**
@@ -11,7 +11,7 @@ console.log("API_BASE_URL:", API_BASE_URL);
  * @param {number} id The ID of the menu item to retrieve.
  */
 async function getMenu(id) {
-  const res = await fetch(`${window.__ENV__.NEXT_PUBLIC_API_BASE_URL}/api/menu/${id}/`);
+  const res = await fetch(`${API_BASE_URL}/api/menu/${id}/`);
   if (!res.ok) {
     throw new Error("Failed to retrieve menu");
   }
@@ -24,7 +24,7 @@ async function getMenu(id) {
  * @param {Object} data The updated data for the menu item.
  */
 async function updateMenu(id, data) {
-  const res = await fetch(`${window.__ENV__.NEXT_PUBLIC_API_BASE_URL}/api/menu/${id}/`, {
+  const res = await fetch(`${API_BASE_URL}/api/menu/${id}/`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

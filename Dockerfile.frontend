@@ -32,6 +32,5 @@ RUN chmod +x /app/start.sh
 # ✅ Expose port for Next.js
 EXPOSE 3000
 
-
-# ✅ Start script that runs Next.js in standalone mode
-CMD ["/app/start.sh"]
+# ✅ Use envsubst to dynamically substitute the API base URL during runtime
+CMD envsubst < /app/start.sh > /app/start.final.sh && chmod +x /app/start.final.sh && /app/start.final.sh
