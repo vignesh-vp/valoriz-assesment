@@ -3,13 +3,14 @@ const nextConfig = {
     reactStrictMode: true,
     output: "standalone", // ✅ Required for standalone mode
   
-    // Dynamically rewrite API requests based on the environment variable
+    // Use rewrites to dynamically map API requests at runtime
     async rewrites() {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:32002"; // Fallback if the environment variable is not set
       return [
         {
           source: "/api/:path*",
-          destination: `${apiBaseUrl}/api/:path*`, // Rewrite to dynamic API base URL
+          destination: process.env.NEXT_PUBLIC_API_BASE_URL
+            ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/:path*`
+            : "http://127.0.0.1:32002/api/:path*", // Fallback URL if the env variable is not set
         },
       ];
     },
