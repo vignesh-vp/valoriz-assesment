@@ -32,9 +32,5 @@ RUN chmod +x /app/start.sh
 # ✅ Expose port for Next.js
 EXPOSE 3000
 
-# ✅ Set the environment variable for the API URL if it's not done in the environment (Kubernetes ConfigMap)
-# You can comment this out if you're setting it via ConfigMap in Kubernetes
-#ENV NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:32002/api/menu"
-
 # ✅ Start script that runs Next.js in standalone mode
 CMD ["/app/start.sh"]
