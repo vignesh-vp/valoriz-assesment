@@ -12,8 +12,6 @@ RUN npm install --frozen-lockfile
 # Copy the entire frontend project
 COPY menu-frontend/ ./
 
-# Copy .env.local file into the container (ensure it's in the root of the Next.js app)
-COPY menu-frontend/.env.local .env.local
 
 # ✅ Environment variables for Next.js during build
 ARG NEXT_PUBLIC_API_URL
