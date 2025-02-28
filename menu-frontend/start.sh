@@ -1,7 +1,10 @@
 #!/bin/sh
 
-# Use the environment variable in your start script
+# Print the environment variable for debugging purposes
 echo "Starting Next.js app with API URL: ${NEXT_PUBLIC_API_BASE_URL}"
 
-# Run the Next.js app using npm run start, which ensures the local binary is used
+# Use envsubst to substitute the environment variable in the configuration file
+envsubst < /app/config.template.js > /app/config.js
+
+# Now, run the Next.js app using the environment variable
 NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL} npm run start
