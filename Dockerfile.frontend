@@ -1,37 +1,50 @@
-# Base image for building the app
+# Stage 1: Build the Next.js application
 FROM node:18-alpine AS builder
+
 WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY menu-frontend/package*.json ./
 
 # Install dependencies
-COPY menu-frontend/package*.json ./
-RUN npm ci --frozen-lockfile
+RUN npm install --frozen-lockfile
 
-# Copy frontend source
+# Copy the entire frontend project
 COPY menu-frontend/ ./
 
-# ✅ Build Next.js app in standalone mode
+# Copy .env.local file into the container (ensure it's in the root of the Next.js app)
+COPY menu-frontend/.env.local .env.local
+
+# ✅ Environment variables for Next.js during build
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# ✅ Show environment variable for debugging
+RUN echo "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
+
+# Build the Next.js app
 RUN npm run build
 
-# Production image
+# 🚀 Stage 2: Production-ready lightweight image
 FROM node:18-alpine
+
 WORKDIR /app
 
-# Install runtime dependencies (gettext for envsubst)
-RUN apk add --no-cache gettext
-
-# Copy the build output from the builder image
+# Copy only necessary production files
 COPY --from=builder /app/.next .next
+COPY --from=builder /app/public public
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/public ./public
 
-# ✅ Copy the start script and template config
-COPY menu-frontend/start.sh /app/start.sh
-COPY menu-frontend/config.template.js /app/config.template.js  
-RUN chmod +x /app/start.sh
+# Copy .env.local for runtime use
+COPY menu-frontend/.env.local .env.local
 
-# ✅ Expose port for Next.js
+# Set runtime environment variable (important for dynamic API URL)
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Expose the app port
 EXPOSE 3000
 
-# ✅ Start script that runs Next.js in standalone mode
-CMD ["/app/start.sh"]
+# Start the Next.js server
+CMD ["npm", "run", "start"]

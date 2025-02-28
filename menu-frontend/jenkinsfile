@@ -57,7 +57,7 @@ pipeline {
                 script {
                     sh '''
                     docker push ${IMAGE_NAME}:${VERSION}
-                    # docker push ${IMAGE_NAME}:latest
+                    docker push ${IMAGE_NAME}:latest
                     '''
                 }
             }
@@ -86,11 +86,7 @@ pipeline {
                     steps {
                         script {
                             sh '''
-                            echo "Applying ConfigMap for Local K3s..."
-                            kubectl apply -f k8s/nextjs-configmap-local.yaml -n ${K8S_NAMESPACE}
-
                             kubectl set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
-
                             echo "Applying deployment..."
                             kubectl rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
                             '''
@@ -103,11 +99,7 @@ pipeline {
                         withCredentials([file(credentialsId: 'aks-kubeconfig', variable: 'KUBECONFIG')]) {
                             script {
                                 sh '''
-                                echo "Applying ConfigMap for AKS..."
-                                kubectl --kubeconfig=$KUBECONFIG apply -f k8s/nextjs-configmap-aks.yaml -n ${K8S_NAMESPACE}
-
                                 kubectl --kubeconfig=$KUBECONFIG set image deployment/menu-frontend menu-frontend=${IMAGE_NAME}:${VERSION} -n ${K8S_NAMESPACE}
-
                                 echo "Applying deployment..."
                                 kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/menu-frontend -n ${K8S_NAMESPACE}
                                 '''
