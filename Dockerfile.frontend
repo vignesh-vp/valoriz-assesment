@@ -27,7 +27,7 @@ COPY --from=builder /app/public ./public
 
 # ✅ Copy the start script and template config
 COPY menu-frontend/start.sh /app/start.sh
-COPY menu-frontend/config.template.js /app/config.template.js  # Copy the template config here
+COPY menu-frontend/config.template.js /app/config.template.js  
 RUN chmod +x /app/start.sh
 
 # ✅ Expose port for Next.js
