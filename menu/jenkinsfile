@@ -98,7 +98,7 @@ pipeline {
                         sh '''
                         kubectl --kubeconfig=$KUBECONFIG config use-context app-prod
                         kubectl --kubeconfig=$KUBECONFIG set image deployment/django-backend django-backend=${IMAGE_NAME}:${VERSION} -n jenkins
-                        # kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/django-backend -n jenkins
+                        kubectl --kubeconfig=$KUBECONFIG rollout restart deployment/django-backend -n jenkins
                         '''
                     }
                 }
