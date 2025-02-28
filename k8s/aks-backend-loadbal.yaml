@@ -8,7 +8,7 @@ spec:
     app: django-backend
   ports:
     - protocol: TCP
-      port: 80   # Publicly exposed port
-      targetPort: 8000  # Your Django app's internal port
-  type: LoadBalancer  # Change this from NodePort to LoadBalancer
+      port: 80   
+      targetPort: 8000  
+  type: LoadBalancer  
 

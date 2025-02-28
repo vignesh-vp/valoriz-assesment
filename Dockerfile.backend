@@ -1,14 +1,23 @@
-# official Python image
-FROM python:3.11
+# Stage 1: Build stage
+FROM python:3.11-slim AS builder
 
-# working directory
+# Working directory for the builder
 WORKDIR /app
 
-# Copy the requirements file
+# Copy only the requirements.txt first to cache dependencies
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Final production stage
+FROM python:3.11-slim AS production
+
+# Set working directory for the production container
+WORKDIR /app
+
+# Copy the installed dependencies from the builder stage
+COPY --from=builder /root/.cache/pip /root/.cache/pip
 
 # Copy the entire project into the container
 COPY . .
@@ -21,4 +30,3 @@ EXPOSE 8000
 
 # Run migrations and start the Django server
 CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
-
