@@ -34,8 +34,6 @@ COPY --from=builder /app/public public
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/package.json ./
 
-# Copy .env.local for runtime use
-COPY menu-frontend/.env.local .env.local
 
 # Set runtime environment variable (important for dynamic API URL)
 ENV NODE_ENV=production
